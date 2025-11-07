@@ -36,14 +36,14 @@ const upload = multer({
 });
 
 router.post("/submit", upload.single("photo"), async (req, res) => {
-    const { rollNumber, roomId } = req.body;
+    const rollNumber = req.body.rollNumber || req.body.rollno;
+    const { roomId } = req.body;
 
     if (!rollNumber || !roomId || !req.file) {
         return res.status(400).json({ success: false, message: "Missing fields or photo." });
     }
 
     const s3Url = req.file.location;
-
     const params = {
         TableName: "Students",
         Item: {
@@ -62,5 +62,6 @@ router.post("/submit", upload.single("photo"), async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to save student", error: err.message });
     }
 });
+
 
 module.exports = router;
