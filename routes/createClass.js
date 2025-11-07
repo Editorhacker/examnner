@@ -203,44 +203,58 @@ module.exports = (io) => {
     });
 
     // Validate room and add participant
-    router.post("/validateRoom", async (req, res) => {
-        const rollNumber = req.body.rollno || req.body.rollNumber;
-    const roomId = req.body.roomId;
+   router.post("/validateRoom", async (req, res) => {
+    const rollNumber = req.body.rollno || req.body.rollNumber;
+    const { roomId } = req.body;
 
-        try {
-            const roomDataRaw = await ddb.send(new GetItemCommand({
-                TableName: ROOM_TABLE,
-                Key: marshall({ roomId })
-            }));
+    if (!rollNumber || !roomId) {
+        return res.status(400).json({ success: false, message: "Missing roll number or room ID" });
+    }
 
-            if (!roomDataRaw.Item) {
-                return res.status(404).json({ success: false, message: "Room not found." });
-            }
+    try {
+        // Get the room
+        const roomDataRaw = await ddb.send(new GetItemCommand({
+            TableName: ROOM_TABLE,
+            Key: marshall({ roomId })
+        }));
 
-            const room = unmarshall(roomDataRaw.Item);
-
-            const isValidStudent = await validateStudent(rollNumber);
-            if (!isValidStudent) {
-                return res.status(400).json({ success: false, message: "Invalid roll number. Student validation failed." });
-            }
-
-            const participant = { rollNo: rollNumber, joinTime: new Date().toISOString() };
-
-            room.participants.push(participant);
-
-            await ddb.send(new PutItemCommand({
-                TableName: ROOM_TABLE,
-                Item: marshall(room)
-            }));
-
-            io.emit("participantJoined", { roomId, participant });
-
-            res.status(200).json({ success: true, message: "Participant validated and added successfully." });
-        } catch (error) {
-            console.error("Error validating room or adding participant:", error);
-            res.status(500).json({ success: false, message: "Internal server error." });
+        if (!roomDataRaw.Item) {
+            return res.status(404).json({ success: false, message: "Room not found." });
         }
-    });
+
+        const room = unmarshall(roomDataRaw.Item);
+        room.participants = room.participants || [];
+
+        // Validate the student
+        const isValidStudent = await validateStudent(rollNumber);
+        if (!isValidStudent) {
+            return res.status(400).json({ success: false, message: "Invalid roll number. Student validation failed." });
+        }
+
+        // Check if already joined
+        if (room.participants.some(p => p.rollNo === rollNumber)) {
+            return res.status(200).json({ success: true, message: "Already joined." });
+        }
+
+        // Add participant
+        const participant = { rollNo: rollNumber, joinTime: new Date().toISOString() };
+        room.participants.push(participant);
+
+        // Save room back
+        await ddb.send(new PutItemCommand({
+            TableName: ROOM_TABLE,
+            Item: marshall(room)
+        }));
+
+        // Notify examiners via socket.io
+        io.emit("participantJoined", { roomId, participant });
+
+        res.status(200).json({ success: true, message: "Student joined successfully.", participant });
+    } catch (error) {
+        console.error("Error validating room or adding participant:", error);
+        res.status(500).json({ success: false, message: "Internal server error." });
+    }
+});
 
 
     // Validate student function
