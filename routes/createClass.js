@@ -204,8 +204,8 @@ module.exports = (io) => {
 
     // Validate room and add participant
     router.post("/validateRoom", async (req, res) => {
-        const { rollno, roomId } = req.body;
-        const rollNumber = rollno;
+        const rollNumber = req.body.rollno || req.body.rollNumber;
+    const roomId = req.body.roomId;
 
         try {
             const roomDataRaw = await ddb.send(new GetItemCommand({
