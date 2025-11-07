@@ -8,7 +8,7 @@ const { Server } = require("socket.io");
 const http = require("http");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const MongoStore = require("connect-mongo");
+const DynamoDBStore = require("connect-dynamodb")(session);
 const winston = require("winston");
 
 const app = express();
@@ -36,10 +36,18 @@ app.use(session({
     secret: process.env.SESSION_SECRET || "defaultSecret",
     resave: false,
     saveUninitialized: true,
-    store: MongoStore.create({
-        mongoUrl: process.env.MONGO_URI,
+    store: new DynamoDBStore({
+        table: "Sessions", // DynamoDB table for sessions
+        AWSConfigJSON: {
+            region: process.env.AWS_REGION ,
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        },
+        createTable: true, // auto-create Sessions table
+
     }),
 }));
+
 app.use(flash());
 app.use((req, res, next) => {
     res.locals.success = req.flash("success");
@@ -60,13 +68,13 @@ const logger = winston.createLogger({
     ],
 });
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
-    .then(() => console.log("Connected to MongoDB"))
-    .catch((err) => logger.error("Database connection error:", err));
+// // MongoDB Connection
+// mongoose.connect(process.env.MONGO_URI, {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true,
+// })
+//     .then(() => console.log("Connected to MongoDB"))
+//     .catch((err) => logger.error("Database connection error:", err));
 
 // Routes
 const addStudentsRoutes = require("./routes/addStudents");
@@ -162,6 +170,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-server.listen(PORT, () => {
-    console.log(`App running on http://localhost:${PORT}`);
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`App running on port ${PORT}`);
 });

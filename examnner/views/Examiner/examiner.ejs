@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examiner Dashboard</title>
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+    <style>
+        body {
+            background-color: #f8f9fa; /* Subtle background color */
+            color: #343a40; /* Text color for better contrast */
+        }
+        .dashboard-container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff; /* Card-like background */
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .dashboard-container h1 {
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .btn-group-custom a {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <%- include("../includes/nav.ejs") %>
+    <div class="container mt-5">
+        <div class="dashboard-container text-center">
+            <h1>Examiner Dashboard</h1>
+            <p class="text-muted">Manage papers, classes, and rooms with ease.</p>
+            <div class="btn-group-custom mt-4">
+                <div class="row g-3">
+                    <!-- Show Papers Button -->
+                    <div class="col-12">
+                        <a href="/showPapers" class="btn btn-primary btn-lg">Show Papers</a>
+                    </div>
+                    <!-- Create Class Button -->
+                    <div class="col-6">
+                        <a href="/createClass" class="btn btn-success btn-lg">Create Class</a>
+                    </div>
+                    <!-- Show Rooms Button -->
+                    <div class="col-6">
+                        <a href="/createClass/showRooms" class="btn btn-info btn-lg">Show Rooms</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+    ></script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= room.roomName %> - Classroom</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            border-radius: 15px;
+            border: none;
+        }
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 0;
+        }
+        .table thead {
+            background-color: #343a40;
+            color: #ffffff;
+        }
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #f2f2f2;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #e9ecef;
+        }
+        .table td, .table th {
+            vertical-align: middle;
+            text-align: center;
+        }
+        img {
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <%- include("../includes/nav.ejs") %>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <!-- Back Button -->
+            <a href="javascript:history.back()" class="btn btn-primary">&lt; Back</a>
+            <h1 class="display-5"><%= room.roomName %></h1>
+            <p class="text-muted">Room ID: <%= room.roomId %></p>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Participants List</h5>
+                <% if (room.participants.length === 0) { %>
+                    <p class="text-muted">No participants have joined yet.</p>
+                <% } else { %>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Roll No</th>
+                                    <th scope="col">Join Time</th>
+                                    <th scope="col">Department</th>
+                                    <th scope="col">Year</th>
+                                    <th scope="col">Degree Image</th>
+                                    <th scope="col">Live Image</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% participants.forEach((participant, index) => { %>
+                                    <tr>
+                                        <td><%= index + 1 %></td>
+                                        <td><%= participant.rollNo %></td>
+                                        <td><%= moment(participant.joinTime).format('LLL') %></td>
+                                        <td><%= participant.department %></td>
+                                        <td><%= participant.year %></td>
+                                        <td>
+                                            <% if (participant.degreeImage) { %>
+                                                <img src="<%= participant.degreeImage %>" alt="Degree Image" style="width: 50px; height: 50px; object-fit: cover;">
+                                            <% } else { %>
+                                                <span class="text-muted">No image</span>
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <% if (participant.liveImage) { %>
+                                                <img src="data:image/png;base64,<%= participant.liveImage %>" alt="Live Image" style="width: 50px; height: 50px; object-fit: cover;">
+                                            <% } else { %>
+                                                <span class="text-muted">No image</span>
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>                            
+                        </table>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Socket.IO Script -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+
+        const socket = io();
+        
+        // Listen for new participants
+        socket.on("participantJoined", (data) => {
+            console.log("Participant joined:", data);
+        if (data.roomId === "<%= room.roomId %>") {
+        const tableBody = document.querySelector("tbody");
+        console.log("Table body found:", tableBody);
+        const newRow = document.createElement("tr");
+
+        newRow.innerHTML = ` 
+            <td>${tableBody.rows.length + 1}</td>
+            <td>${data.participant.rollNo}</td>
+            <td>${new Date(data.participant.joinTime).toLocaleString()}</td>
+        `;
+
+        tableBody.appendChild(newRow);
+        }
+        });
+
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Room</title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Room: <%= room.roomName %></h1>
+        <h2>Room ID: <%= room.roomId %></h2>
+
+        <div id="chat">
+            <ul id="messages"></ul>
+        </div>
+        <form id="messageForm">
+            <input id="messageInput" autocomplete="off" placeholder="Type a message">
+            <button>Send</button>
+        </form>
+    </div>
+
+    <script>
+        const socket = io();
+        const roomId = "<%= room.roomId %>";
+
+        // Join the room
+        socket.emit("joinRoom", roomId);
+
+        // Handle incoming messages
+        socket.on("message", (message) => {
+            const messages = document.getElementById("messages");
+            const li = document.createElement("li");
+            li.textContent = message;
+            messages.appendChild(li);
+        });
+
+        // Send a message
+        document.getElementById("messageForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const message = document.getElementById("messageInput").value;
+            socket.emit("message", { roomId, message });
+            document.getElementById("messageInput").value = "";
+        });
+    </script>
+</body>
+</html>
