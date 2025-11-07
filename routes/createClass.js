@@ -244,18 +244,24 @@ module.exports = (io) => {
 
 
     // Validate student function
- async function validateStudent(rollNumber) {
-    try {
-        const studentRaw = await ddb.send(new GetItemCommand({
-            TableName: DEGREE_TABLE,
-            Key: marshall({ rollno: rollNumber })
-        }));
-        return !!studentRaw.Item;
-    } catch (error) {
-        console.error("Error validating student:", error);
-        return false;
-    }
+async function validateStudent(rollNumber) {
+  if (!rollNumber) {
+    console.error("Invalid roll number: undefined or empty");
+    return false;
+  }
+
+  try {
+    const studentRaw = await ddb.send(new GetItemCommand({
+      TableName: DEGREE_TABLE,
+      Key: marshall({ rollno: rollNumber }),
+    }));
+    return !!studentRaw.Item;
+  } catch (error) {
+    console.error("Error validating student:", error);
+    return false;
+  }
 }
+
 
 
     // ✅ Check if room is still active
