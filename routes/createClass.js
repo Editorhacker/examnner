@@ -116,7 +116,7 @@ module.exports = (io) => {
                         rollNo: participant.rollNo,
                         joinTime: participant.joinTime,
                         degreeImage: degreeData?.photoUrl || null,
-                        liveImage: studentData?.image || null,
+liveImage: studentData?.photoUrl || null,
                         department: degreeData?.department || "N/A",
                         year: degreeData?.year || "N/A",
                     };
