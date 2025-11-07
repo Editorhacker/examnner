@@ -49,7 +49,7 @@ module.exports = (io) => {
 
             await ddb.send(new PutItemCommand({
                 TableName: ROOM_TABLE,
-                Item: marshall(newRoom)
+    Item: marshall(newRoom, { removeUndefinedValues: true })
             }));
 
             io.emit("roomCreated", {
