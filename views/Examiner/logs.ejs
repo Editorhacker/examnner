@@ -71,7 +71,7 @@
         const tableBody = document.getElementById('logs-table-body');
 
         // Establish an EventSource connection
-        const eventSource = new EventSource(`http://localhost:3000/createClass/logs/${roomId}/stream`);
+        const eventSource = new EventSource(`https://examp.shubhanshumohanty.site/createClass/logs/${roomId}/stream`);
 
         eventSource.onmessage = (event) => {
             const log = JSON.parse(event.data);
