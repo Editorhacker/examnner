@@ -1,101 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Room Logs - <%= roomId %></title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        tbody {
-            display: block;
-            height: 400px;
-            overflow-y: auto;
-            border-top: 1px solid #ddd;
-        }
-        tr {
-            display: table;
-            width: 100%;
-            table-layout: fixed;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Room Logs - <%= roomId %></title>
+  <link
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+      word-wrap: break-word;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    /* Better scroll handling */
+    tbody {
+      max-height: 400px;
+      overflow-y: auto;
+      display: block;
+    }
+
+    tr {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    .container {
+      margin-top: 30px;
+    }
+  </style>
 </head>
 <body>
-    <%- include("../includes/nav.ejs") %>
-    <div class="container my-4">
-        <!-- Back Button -->
-        <a href="javascript:history.back()" class="btn btn-primary mb-4">&lt; Back</a>
+  <!-- Navigation -->
+  <%- include("../includes/nav.ejs") %>
 
-        <h1 class="text-center mb-4">Logs for Room: <%= roomId %></h1>
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped">
-                <thead class="thead-dark">
-                    <tr>
-                        <th>Roll Number</th>
-                        <th>Message</th>
-                        <th>Status</th>
-                        <th>Timestamp</th>
-                    </tr>
-                </thead>
-                <tbody id="logs-table-body">
-                    <% logs.forEach(log => { %>
-                        <tr>
-                            <td><%= log.rollNumber %></td>
-                            <td><%= log.message %></td>
-                            <td><%= log.status %></td>
-                            <td><%= log.timestamp.toISOString() %></td>
-                        </tr>
-                    <% }); %>
-                </tbody>
-            </table>
-        </div>
+  <div class="container">
+    <a href="javascript:history.back()" class="btn btn-primary mb-4">&lt; Back</a>
+
+    <h1 class="text-center mb-4">Logs for Room: <%= roomId %></h1>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped">
+        <thead class="thead-dark">
+          <tr>
+            <th>Roll Number</th>
+            <th>Message</th>
+            <th>Status</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody id="logs-table-body">
+          <% logs.forEach(log => { %>
+            <tr>
+              <td><%= log.rollNumber %></td>
+              <td><%= log.message %></td>
+              <td><%= log.status %></td>
+              <td><%= new Date(log.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
     </div>
+  </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-    <script>
-        const roomId = "<%= roomId %>";
-        const tableBody = document.getElementById('logs-table-body');
+  <script>
+    const roomId = "<%= roomId %>";
+    const tableBody = document.getElementById("logs-table-body");
 
-        // Establish an EventSource connection
-        const eventSource = new EventSource(`https://examp.shubhanshumohanty.site/createClass/logs/${roomId}/stream`);
+    // ✅ Use relative path so it works in all environments
+    const eventSource = new EventSource(`/createClass/logs/${roomId}/stream`);
 
-        eventSource.onmessage = (event) => {
-            const log = JSON.parse(event.data);
+    eventSource.onmessage = (event) => {
+      try {
+        const log = JSON.parse(event.data);
 
-            // Create a new row for the log
-            const row = document.createElement('tr');
-            row.innerHTML = ` 
-                <td>${log.rollNumber}</td>
-                <td>${log.message}</td>
-                <td>${log.status}</td>
-                <td>${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
-            `;
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${log.rollNumber || "—"}</td>
+          <td>${log.message || "No message"}</td>
+          <td>${log.status || "N/A"}</td>
+          <td>${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}</td>
+        `;
 
-            // Add the new log at the top of the table
-            tableBody.prepend(row);
+        // Add new log on top
+        tableBody.prepend(row);
+        tableBody.scrollTop = 0;
+      } catch (err) {
+        console.error("Invalid log data:", err, event.data);
+      }
+    };
 
-            // Ensure older logs scroll upwards automatically
-            tableBody.scrollTop = 0;
-        };
-
-        eventSource.onerror = () => {
-            console.error("Error connecting to the server for live logs.");
-            alert("Lost connection to the server. Logs might not update in real-time.");
-        };
-    </script>
+    eventSource.onerror = (err) => {
+      console.error("Error connecting to the server for live logs:", err);
+      eventSource.close();
+      alert("⚠️ Lost connection to the server. Logs may not update in real-time.");
+    };
+  </script>
 </body>
 </html>
